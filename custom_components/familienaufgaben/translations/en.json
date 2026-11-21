@@ -1,0 +1,233 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up Familienaufgaben",
+        "description": "Shared to-do and appointment list for the whole family. Data is stored in /config/familienaufgaben/aufgaben.json – existing tasks there (e.g. from the former Pyscript version) are kept. Afterwards there is an \"Aufgaben\" entry in the sidebar and a \"Familienaufgaben\" card for your own dashboards."
+      }
+    },
+    "error": {
+      "pyscript_aktiv": "The Pyscript version (pyscript/familienaufgaben.py) is still running. Remove or rename that file first, otherwise both write to the same data."
+    },
+    "abort": {
+      "already_configured": "Familienaufgaben is already set up.",
+      "single_instance_allowed": "Familienaufgaben is already set up."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Familienaufgaben",
+        "description": "Sidebar and target of notifications.",
+        "data": {
+          "seitenleiste": "Sidebar entry",
+          "titel": "Sidebar title",
+          "link": "Page opened by notifications"
+        },
+        "data_description": {
+          "seitenleiste": "Shows the task list as its own page in the sidebar (for all users).",
+          "titel": "Name of the sidebar entry.",
+          "link": "Path opened when a notification is tapped, e.g. /familienaufgaben (sidebar) or /my-dashboard/tasks if the card is on your own dashboard."
+        }
+      }
+    }
+  },
+  "services": {
+    "liste": {
+      "name": "List",
+      "description": "Returns all tasks, the settings and who the caller is (used by the card)."
+    },
+    "speichern": {
+      "name": "Save task",
+      "description": "Creates a task (without ID) or changes it (with ID). Pass the fields as \"aufgabe\" (object) or one by one. Persons as person.xyz, others just by name.",
+      "fields": {
+        "aufgabe": {
+          "name": "Task",
+          "description": "Whole task as an object (this is what the card uses)."
+        },
+        "id": {
+          "name": "ID",
+          "description": "ID of an existing task to change."
+        },
+        "titel": {
+          "name": "Title",
+          "description": "What needs to be done."
+        },
+        "notiz": {
+          "name": "Note",
+          "description": "Additional notes."
+        },
+        "kategorie": {
+          "name": "Category",
+          "description": "Category ID, e.g. haushalt, auto, freizeit."
+        },
+        "tags": {
+          "name": "Tags",
+          "description": "List or comma separated."
+        },
+        "fuer": {
+          "name": "Intended for",
+          "description": "List, e.g. [person.lena, \"Grandma\"]."
+        },
+        "macher": {
+          "name": "Assignees",
+          "description": "List of persons doing it."
+        },
+        "geplant": {
+          "name": "Planned day",
+          "description": "Date (YYYY-MM-DD)."
+        },
+        "zeit": {
+          "name": "Time",
+          "description": "HH:MM, optional."
+        },
+        "frist_modus": {
+          "name": "Deadline",
+          "description": "keine, datum or relativ."
+        },
+        "frist": {
+          "name": "Due by",
+          "description": "Date when deadline is \"datum\"."
+        },
+        "frist_rel": {
+          "name": "Due within",
+          "description": "When deadline is \"relativ\", e.g. {\"n\": 2, \"einheit\": \"wochen\"}."
+        },
+        "serie": {
+          "name": "Repeat",
+          "description": "E.g. {\"einheit\": \"wochen\", \"n\": 1, \"wochentage\": [5], \"basis\": \"plan\"}."
+        },
+        "status": {
+          "name": "Status",
+          "description": "neu, planung, arbeit or erledigt."
+        },
+        "akteur": {
+          "name": "Who",
+          "description": "Who does this (person.xyz); otherwise the logged-in user."
+        },
+        "erinnerungen": {
+          "name": "Reminders",
+          "description": "Reminders before the date, e.g. [{\"n\": 1, \"einheit\": \"tage\", \"uhrzeit\": \"18:00\", \"kanaele\": [\"app\", \"whatsapp\"]}]."
+        }
+      }
+    },
+    "aktion": {
+      "name": "Action",
+      "description": "Take over, hand back, plan, start, complete, reopen, set status or skip a recurring date.",
+      "fields": {
+        "aufgabe_id": {
+          "name": "Task",
+          "description": "ID of the task."
+        },
+        "aktion": {
+          "name": "Action",
+          "description": "What should happen."
+        },
+        "geplant": {
+          "name": "Date",
+          "description": "For \"planen\"; empty removes the date."
+        },
+        "zeit": {
+          "name": "Time",
+          "description": "For \"planen\", optional."
+        },
+        "macher": {
+          "name": "Assignees",
+          "description": "For \"planen\", list."
+        },
+        "status": {
+          "name": "Status",
+          "description": "New status for \"status\"."
+        },
+        "akteur": {
+          "name": "Who",
+          "description": "Who does this (person.xyz); otherwise the logged-in user."
+        }
+      }
+    },
+    "loeschen": {
+      "name": "Delete task",
+      "description": "Deletes a task (ends a series). It goes to the trash and can be restored.",
+      "fields": {
+        "aufgabe_id": {
+          "name": "Task",
+          "description": "ID of the task."
+        },
+        "akteur": {
+          "name": "Who",
+          "description": "Who does this (person.xyz)."
+        }
+      }
+    },
+    "wiederherstellen": {
+      "name": "Restore deleted task",
+      "description": "Brings a deleted task back from the trash.",
+      "fields": {
+        "aufgabe_id": {
+          "name": "Task",
+          "description": "ID of the task."
+        },
+        "akteur": {
+          "name": "Who",
+          "description": "Who does this (person.xyz)."
+        }
+      }
+    },
+    "papierkorb_leeren": {
+      "name": "Empty trash",
+      "description": "Permanently removes deleted tasks."
+    },
+    "einstellungen": {
+      "name": "Settings",
+      "description": "Change categories, external persons, notifications, reminders, contacts, default view and retention.",
+      "fields": {
+        "einstellungen": {
+          "name": "Settings",
+          "description": "Changed settings as an object."
+        }
+      }
+    },
+    "ich_bin": {
+      "name": "Who am I?",
+      "description": "Links the logged-in user to a person (for users without a linked person).",
+      "fields": {
+        "person": {
+          "name": "Person",
+          "description": "Empty removes the link."
+        }
+      }
+    },
+    "erinnern": {
+      "name": "Send reminder",
+      "description": "Sends every person what is due today or overdue. With dry run only shows it.",
+      "fields": {
+        "probelauf": {
+          "name": "Dry run",
+          "description": "Only show, send nothing."
+        }
+      }
+    },
+    "test": {
+      "name": "Test message",
+      "description": "Sends a test message to a person via app, WhatsApp and e-mail (as far as set up).",
+      "fields": {
+        "person": {
+          "name": "Person",
+          "description": "person.xyz or the name of another person."
+        },
+        "whatsapp": {
+          "name": "WhatsApp number",
+          "description": "Leave empty = stored number."
+        },
+        "email": {
+          "name": "E-mail address",
+          "description": "Leave empty = stored address."
+        },
+        "email_dienst": {
+          "name": "E-mail service",
+          "description": "notify service for e-mail; leave empty = configured service."
+        }
+      }
+    }
+  }
+}

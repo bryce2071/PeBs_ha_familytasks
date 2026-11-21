@@ -1,0 +1,171 @@
+liste:
+
+speichern:
+  fields:
+    aufgabe:
+      selector:
+        object:
+    id:
+      example: 6ab9143404
+      selector:
+        text:
+    titel:
+      example: Staubsaugen
+      selector:
+        text:
+    notiz:
+      selector:
+        text:
+          multiline: true
+    kategorie:
+      example: haushalt
+      selector:
+        text:
+    tags:
+      selector:
+        object:
+    fuer:
+      selector:
+        object:
+    macher:
+      selector:
+        object:
+    geplant:
+      selector:
+        date:
+    zeit:
+      selector:
+        time:
+    frist_modus:
+      selector:
+        select:
+          options:
+            - keine
+            - datum
+            - relativ
+    frist:
+      selector:
+        date:
+    frist_rel:
+      selector:
+        object:
+    serie:
+      selector:
+        object:
+    status:
+      selector:
+        select:
+          options:
+            - neu
+            - planung
+            - arbeit
+            - erledigt
+    erinnerungen:
+      selector:
+        object:
+    akteur:
+      selector:
+        entity:
+          domain: person
+
+aktion:
+  fields:
+    aufgabe_id:
+      required: true
+      selector:
+        text:
+    aktion:
+      required: true
+      selector:
+        select:
+          options:
+            - uebernehmen
+            - abgeben
+            - planen
+            - starten
+            - erledigen
+            - wieder_oeffnen
+            - status
+            - ueberspringen
+    geplant:
+      selector:
+        date:
+    zeit:
+      selector:
+        time:
+    macher:
+      selector:
+        object:
+    status:
+      selector:
+        select:
+          options:
+            - neu
+            - planung
+            - arbeit
+            - erledigt
+    akteur:
+      selector:
+        entity:
+          domain: person
+
+loeschen:
+  fields:
+    aufgabe_id:
+      required: true
+      selector:
+        text:
+    akteur:
+      selector:
+        entity:
+          domain: person
+
+wiederherstellen:
+  fields:
+    aufgabe_id:
+      required: true
+      selector:
+        text:
+    akteur:
+      selector:
+        entity:
+          domain: person
+
+papierkorb_leeren:
+
+einstellungen:
+  fields:
+    einstellungen:
+      required: true
+      selector:
+        object:
+
+ich_bin:
+  fields:
+    person:
+      selector:
+        entity:
+          domain: person
+
+erinnern:
+  fields:
+    probelauf:
+      default: true
+      selector:
+        boolean:
+
+test:
+  fields:
+    person:
+      required: true
+      selector:
+        text:
+    whatsapp:
+      selector:
+        text:
+    email:
+      selector:
+        text:
+    email_dienst:
+      selector:
+        text:

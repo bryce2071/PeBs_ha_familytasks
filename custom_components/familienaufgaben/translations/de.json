@@ -1,0 +1,233 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Familienaufgaben einrichten",
+        "description": "Gemeinsame Aufgaben- und Terminliste für die ganze Familie. Die Daten liegen in /config/familienaufgaben/aufgaben.json – sind dort schon Aufgaben (z. B. aus der früheren Pyscript-Fassung), werden sie übernommen. Danach gibt es den Eintrag „Aufgaben“ in der Seitenleiste und die Karte „Familienaufgaben“ für eigene Dashboards."
+      }
+    },
+    "error": {
+      "pyscript_aktiv": "Die Pyscript-Fassung (pyscript/familienaufgaben.py) läuft noch. Bitte die Datei zuerst entfernen oder umbenennen, sonst schreiben beide in dieselben Daten."
+    },
+    "abort": {
+      "already_configured": "Familienaufgaben ist schon eingerichtet.",
+      "single_instance_allowed": "Familienaufgaben ist schon eingerichtet."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Familienaufgaben",
+        "description": "Seitenleiste und Ziel der Benachrichtigungen.",
+        "data": {
+          "seitenleiste": "Eintrag in der Seitenleiste",
+          "titel": "Name in der Seitenleiste",
+          "link": "Seite, die Benachrichtigungen öffnen"
+        },
+        "data_description": {
+          "seitenleiste": "Zeigt die Aufgabenliste als eigene Seite in der Seitenleiste (für alle Benutzer).",
+          "titel": "So heißt der Eintrag in der Seitenleiste.",
+          "link": "Pfad, den ein Antippen der Benachrichtigung öffnet, z. B. /familienaufgaben (Seitenleiste) oder /mein-dashboard/aufgaben, wenn die Karte auf einem eigenen Dashboard liegt."
+        }
+      }
+    }
+  },
+  "services": {
+    "liste": {
+      "name": "Liste",
+      "description": "Liefert alle Aufgaben, die Einstellungen und wer der Aufrufer ist (für die Karte)."
+    },
+    "speichern": {
+      "name": "Aufgabe speichern",
+      "description": "Legt eine Aufgabe an (ohne ID) oder ändert sie (mit ID). Felder entweder als „Aufgabe“ (Objekt) oder einzeln. Personen als person.xyz, andere einfach mit Namen.",
+      "fields": {
+        "aufgabe": {
+          "name": "Aufgabe",
+          "description": "Ganze Aufgabe als Objekt (so nutzt es die Karte)."
+        },
+        "id": {
+          "name": "ID",
+          "description": "Kennung einer vorhandenen Aufgabe, die geändert werden soll."
+        },
+        "titel": {
+          "name": "Bezeichnung",
+          "description": "Was zu tun ist."
+        },
+        "notiz": {
+          "name": "Notiz",
+          "description": "Zusätzliche Hinweise."
+        },
+        "kategorie": {
+          "name": "Kategorie",
+          "description": "Kennung der Kategorie, z. B. haushalt, auto, freizeit."
+        },
+        "tags": {
+          "name": "Tags",
+          "description": "Liste oder durch Komma getrennt."
+        },
+        "fuer": {
+          "name": "Vorgesehen für",
+          "description": "Liste, z. B. [person.lena, \"Oma\"]."
+        },
+        "macher": {
+          "name": "Ausführende",
+          "description": "Liste der Personen, die es erledigen."
+        },
+        "geplant": {
+          "name": "Geplanter Tag",
+          "description": "Datum (JJJJ-MM-TT)."
+        },
+        "zeit": {
+          "name": "Uhrzeit",
+          "description": "HH:MM, optional."
+        },
+        "frist_modus": {
+          "name": "Frist",
+          "description": "keine, datum oder relativ."
+        },
+        "frist": {
+          "name": "Spätestens bis",
+          "description": "Datum bei Frist „datum“."
+        },
+        "frist_rel": {
+          "name": "Spätestens in",
+          "description": "Bei Frist „relativ“, z. B. {\"n\": 2, \"einheit\": \"wochen\"}."
+        },
+        "serie": {
+          "name": "Wiederholung",
+          "description": "Z. B. {\"einheit\": \"wochen\", \"n\": 1, \"wochentage\": [5], \"basis\": \"plan\"}."
+        },
+        "status": {
+          "name": "Status",
+          "description": "neu, planung, arbeit oder erledigt."
+        },
+        "akteur": {
+          "name": "Wer",
+          "description": "Wer das tut (person.xyz); sonst der angemeldete Benutzer."
+        },
+        "erinnerungen": {
+          "name": "Erinnerungen",
+          "description": "Erinnerungen vor dem Termin, z. B. [{\"n\": 1, \"einheit\": \"tage\", \"uhrzeit\": \"18:00\", \"kanaele\": [\"app\", \"whatsapp\"]}]."
+        }
+      }
+    },
+    "aktion": {
+      "name": "Aktion",
+      "description": "Übernehmen, abgeben, planen, starten, erledigen, wieder öffnen, Status setzen oder Serientermin überspringen.",
+      "fields": {
+        "aufgabe_id": {
+          "name": "Aufgabe",
+          "description": "Kennung der Aufgabe."
+        },
+        "aktion": {
+          "name": "Aktion",
+          "description": "Was passieren soll."
+        },
+        "geplant": {
+          "name": "Termin",
+          "description": "Bei „planen“; leer entfernt den Termin."
+        },
+        "zeit": {
+          "name": "Uhrzeit",
+          "description": "Bei „planen“, optional."
+        },
+        "macher": {
+          "name": "Ausführende",
+          "description": "Bei „planen“, Liste."
+        },
+        "status": {
+          "name": "Status",
+          "description": "Neuer Status bei „status“."
+        },
+        "akteur": {
+          "name": "Wer",
+          "description": "Wer das tut (person.xyz); sonst der angemeldete Benutzer."
+        }
+      }
+    },
+    "loeschen": {
+      "name": "Aufgabe löschen",
+      "description": "Löscht eine Aufgabe (bei Serien endet die Serie). Sie kommt in den Papierkorb und lässt sich wiederherstellen.",
+      "fields": {
+        "aufgabe_id": {
+          "name": "Aufgabe",
+          "description": "Kennung der Aufgabe."
+        },
+        "akteur": {
+          "name": "Wer",
+          "description": "Wer das tut (person.xyz)."
+        }
+      }
+    },
+    "wiederherstellen": {
+      "name": "Gelöschte Aufgabe wiederherstellen",
+      "description": "Holt eine gelöschte Aufgabe aus dem Papierkorb zurück.",
+      "fields": {
+        "aufgabe_id": {
+          "name": "Aufgabe",
+          "description": "Kennung der Aufgabe."
+        },
+        "akteur": {
+          "name": "Wer",
+          "description": "Wer das tut (person.xyz)."
+        }
+      }
+    },
+    "papierkorb_leeren": {
+      "name": "Papierkorb leeren",
+      "description": "Entfernt gelöschte Aufgaben endgültig."
+    },
+    "einstellungen": {
+      "name": "Einstellungen",
+      "description": "Kategorien, externe Personen, Benachrichtigungen, Erinnerungen, Kontakte, Standardansicht und Aufbewahrung ändern.",
+      "fields": {
+        "einstellungen": {
+          "name": "Einstellungen",
+          "description": "Geänderte Einstellungen als Objekt."
+        }
+      }
+    },
+    "ich_bin": {
+      "name": "Wer bin ich?",
+      "description": "Ordnet den angemeldeten Benutzer einer Person zu (für Benutzer ohne verknüpfte Person).",
+      "fields": {
+        "person": {
+          "name": "Person",
+          "description": "Leer entfernt die Zuordnung."
+        }
+      }
+    },
+    "erinnern": {
+      "name": "Erinnerung senden",
+      "description": "Schickt jeder Person, was heute ansteht oder überfällig ist. Mit Probelauf nur anzeigen.",
+      "fields": {
+        "probelauf": {
+          "name": "Probelauf",
+          "description": "Nur anzeigen, nichts senden."
+        }
+      }
+    },
+    "test": {
+      "name": "Testnachricht",
+      "description": "Schickt eine Testnachricht an eine Person über App, WhatsApp und E-Mail (soweit eingerichtet).",
+      "fields": {
+        "person": {
+          "name": "Person",
+          "description": "person.xyz oder der Name einer weiteren Person."
+        },
+        "whatsapp": {
+          "name": "WhatsApp-Nummer",
+          "description": "Leer lassen = gespeicherte Nummer."
+        },
+        "email": {
+          "name": "E-Mail-Adresse",
+          "description": "Leer lassen = gespeicherte Adresse."
+        },
+        "email_dienst": {
+          "name": "E-Mail-Dienst",
+          "description": "notify-Dienst für E-Mail; leer lassen = eingestellter Dienst."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "domain": "familienaufgaben",
+  "name": "Familienaufgaben",
+  "after_dependencies": ["mobile_app", "notify", "person"],
+  "codeowners": ["@bryce2071"],
+  "config_flow": true,
+  "dependencies": ["frontend", "http", "panel_custom"],
+  "documentation": "https://github.com/bryce2071/PeBs_ha_familytasks",
+  "integration_type": "service",
+  "iot_class": "calculated",
+  "issue_tracker": "https://github.com/bryce2071/PeBs_ha_familytasks/issues",
+  "requirements": [],
+  "single_config_entry": true,
+  "version": "1.4.0"
+}
