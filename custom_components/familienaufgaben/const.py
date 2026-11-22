@@ -4,7 +4,7 @@ from __future__ import annotations
 
 DOMAIN = "familienaufgaben"
 NAME = "Familienaufgaben"
-VERSION = "1.4.0"
+VERSION = "1.5.0"
 
 # Daten: <config>/familienaufgaben/aufgaben.json (wie in der früheren Pyscript-Fassung)
 ORDNER = "familienaufgaben"

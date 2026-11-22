@@ -323,12 +323,56 @@ class FamilienaufgabenKern:
                 _LOGGER.warning("Familienaufgaben: Erinnerung für „%s“ ging nicht: %s", aufgabe.get("titel"), exc)
         await self.async_geaendert()
 
+    async def _async_ausfuehrung_senden(self, person: str, meldung: dict) -> str:
+        """„Benachrichtigen bei Ausführung“: per App; ohne Handy (z. B. Externe) per WhatsApp, sonst E-Mail."""
+        titel, text, aid = meldung["titel"], meldung["text"], meldung["aufgabe"]
+        if person.startswith("person.") and await self._async_app_senden(person, titel, text, aid, None):
+            return "App"
+        einst = self.daten["einstellungen"]
+        kontakt = (einst.get("kontakte") or {}).get(person) or {}
+        if kontakt.get("whatsapp") and self.hass.services.has_service("wa_bridge", "send_message"):
+            try:
+                await self.hass.services.async_call(
+                    "wa_bridge",
+                    "send_message",
+                    {"number": kontakt["whatsapp"], "message": "Familienaufgaben – " + titel + "\n" + text},
+                    blocking=False,
+                )
+                return "WhatsApp"
+            except Exception as exc:  # noqa: BLE001
+                _LOGGER.warning("Familienaufgaben: WhatsApp an %s ging nicht: %s", person, exc)
+        dienst = einst.get("email_dienst") or ""
+        if kontakt.get("email") and dienst and self.hass.services.has_service("notify", dienst):
+            try:
+                await self.hass.services.async_call(
+                    "notify",
+                    dienst,
+                    {"title": "Familienaufgaben: " + titel, "message": text, "target": [kontakt["email"]]},
+                    blocking=False,
+                )
+                return "E-Mail"
+            except Exception as exc:  # noqa: BLE001
+                _LOGGER.warning("Familienaufgaben: E-Mail an %s ging nicht: %s", person, exc)
+        _LOGGER.info("Familienaufgaben: %s ist für „%s“ nicht erreichbar (kein Handy, keine Kontaktdaten)", person, text)
+        return ""
+
     async def _async_senden(self, meldungen: list | None, akteur: str) -> None:
         einst = self.daten["einstellungen"]
+        # Wer als Ersteller ohnehin über diese Änderung informiert wird, bekommt keine zweite Meldung
+        schon = set()
+        if einst.get("ersteller_melden", True):
+            for meldung in meldungen or []:
+                if meldung["art"] == "ersteller":
+                    schon.update((meldung["aufgabe"], p) for p in meldung["an"])
         for meldung in meldungen or []:
             if meldung["art"] == "ersteller" and not einst.get("ersteller_melden", True):
                 continue
             if meldung["art"] == "zugewiesen" and not einst.get("zugewiesene_melden", True):
+                continue
+            if meldung["art"] == "ausfuehrung":
+                for person in meldung["an"]:
+                    if person and person != akteur and (meldung["aufgabe"], person) not in schon:
+                        await self._async_ausfuehrung_senden(person, meldung)
                 continue
             for person in meldung["an"]:
                 if person and person != akteur and person.startswith("person."):

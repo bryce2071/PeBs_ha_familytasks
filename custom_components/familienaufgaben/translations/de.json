@@ -73,6 +73,14 @@
           "name": "Ausführende",
           "description": "Liste der Personen, die es erledigen."
         },
+        "melden_an": {
+          "name": "Benachrichtigen bei Ausführung",
+          "description": "Wer eine Nachricht bekommt, wenn die Aufgabe erledigt bzw. begonnen wird, z. B. [person.lena, \"Oma\"]. Externe per WhatsApp oder E-Mail, wenn hinterlegt."
+        },
+        "melden_bei": {
+          "name": "Benachrichtigen wann",
+          "description": "erledigt (Standard) und/oder arbeit (= begonnen)."
+        },
         "geplant": {
           "name": "Geplanter Tag",
           "description": "Datum (JJJJ-MM-TT)."

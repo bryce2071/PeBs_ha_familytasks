@@ -30,6 +30,16 @@ speichern:
     macher:
       selector:
         object:
+    melden_an:
+      selector:
+        object:
+    melden_bei:
+      selector:
+        select:
+          multiple: true
+          options:
+            - erledigt
+            - arbeit
     geplant:
       selector:
         date:

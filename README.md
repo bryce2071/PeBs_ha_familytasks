@@ -23,6 +23,9 @@ angelegt hat, bekommt auf dem Handy Bescheid, wenn sich daran etwas tut.
 - **Benachrichtigungen** über die Home-Assistant-App: an den Ersteller bei Übernahme, Termin,
   Statuswechsel, Überspringen und Löschen; an Vorgesehene bei neuen Aufgaben – mit Knopf
   **Übernehmen** direkt in der Benachrichtigung. Optional eine tägliche Übersicht.
+- **Benachrichtigen bei Ausführung:** je Aufgabe beliebig viele Personen, die eine Nachricht
+  bekommen, wenn die Aufgabe erledigt und/oder begonnen wird – per App, Externe per WhatsApp oder
+  E-Mail (wenn hinterlegt). Wer es selbst erledigt, bekommt keine; der Ersteller nicht doppelt.
 - **Erinnerungen vor dem Termin** (ohne Termin: vor der Frist), je Aufgabe beliebig viele –
   per App, per WhatsApp (über die Integration
   [WhatsApp Bridge](https://github.com/raulpetruta/ha-wa-bridge), falls installiert) oder per

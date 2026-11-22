@@ -44,6 +44,11 @@ _ER_NAME = {
 ER_MAX = 10
 ER_NACHLAUF_MIN = 30
 
+# Benachrichtigen bei Ausführung: wann (Status) – „arbeit“ = begonnen, „erledigt“ = erledigt
+_MELDEN_BEI = ["arbeit", "erledigt"]
+_MELDEN_ALIAS = {"begonnen": "arbeit", "starten": "arbeit", "start": "arbeit", "in_bearbeitung": "arbeit",
+                 "erledigen": "erledigt", "fertig": "erledigt"}
+
 
 # ---------------------------------------------------------------------------
 # Reine Logik (nativ übersetzt – schnell und ohne Pyscript-Funktionen)
@@ -648,10 +653,24 @@ def _ansicht_sauber(a):
     return aus
 
 
+def _melden_bei(werte):
+    """Wann die Personen aus „melden_an“ benachrichtigt werden: Teilmenge von arbeit/erledigt (Standard: erledigt)."""
+    if isinstance(werte, str):
+        werte = werte.split(",")
+    if not isinstance(werte, (list, tuple)):
+        return ["erledigt"]
+    gewaehlt = set()
+    for w in werte:
+        w = str(w or "").strip().lower()
+        gewaehlt.add(_MELDEN_ALIAS.get(w, w))
+    aus = [s for s in _MELDEN_BEI if s in gewaehlt]
+    return aus or ["erledigt"]
+
+
 def _leere_aufgabe():
     return {
         "id": "", "titel": "", "notiz": "", "kategorie": "", "tags": [],
-        "fuer": [], "macher": [], "status": "neu",
+        "fuer": [], "macher": [], "melden_an": [], "melden_bei": ["erledigt"], "status": "neu",
         "geplant": None, "zeit": None, "frist": None, "frist_rel": None,
         "serie": None, "serie_id": None, "folge_id": None,
         "erstellt": "", "erstellt_von": "", "geaendert": "", "geaendert_von": "",
@@ -680,9 +699,10 @@ def _normalisieren(d, standard_melden=None):
             b.update(a)
             if b["status"] not in _STATUS:
                 b["status"] = "neu"
-            for k in ("tags", "fuer", "macher", "verlauf", "erinnerungen"):
+            for k in ("tags", "fuer", "macher", "melden_an", "verlauf", "erinnerungen"):
                 if not isinstance(b.get(k), list):
                     b[k] = []
+            b["melden_bei"] = _melden_bei(b.get("melden_bei"))
             if not isinstance(b.get("gesendet"), dict):
                 b["gesendet"] = {}
             aus[liste].append(b)
@@ -722,6 +742,10 @@ def _eingabe(e, gueltig, kat_ids):
         f["fuer"] = _personen(e.get("fuer"), gueltig)
     if "macher" in e:
         f["macher"] = _personen(e.get("macher"), gueltig)
+    if "melden_an" in e:
+        f["melden_an"] = _personen(e.get("melden_an"), gueltig)
+    if "melden_bei" in e:
+        f["melden_bei"] = _melden_bei(e.get("melden_bei"))
     if "status" in e and e.get("status"):
         s = str(e.get("status"))
         if s not in _STATUS:
@@ -897,6 +921,25 @@ def _vergleich(alt, a, akteur, jetzt, namen, extra=None, extra_titel=None, still
                  ("tags", "Tags"), ("serie", "Wiederholung"), ("erinnerungen", "Erinnerungen")):
         if alt.get(k) != a.get(k):
             eintraege.append(n + " geändert")
+    v_ma = alt.get("melden_an") or []
+    n_ma = a.get("melden_an") or []
+    if v_ma != n_ma:
+        eintraege.append("Benachrichtigen bei Ausführung: " + (_pnamen(n_ma, namen) or "niemand"))
+    elif n_ma and (alt.get("melden_bei") or ["erledigt"]) != (a.get("melden_bei") or ["erledigt"]):
+        eintraege.append("Benachrichtigen bei Ausführung geändert")
+    s_neu = a.get("status")
+    if alt.get("status") != s_neu and "status" not in still and s_neu in _MELDEN_BEI and s_neu in (a.get("melden_bei") or []):
+        empf = [p for p in n_ma if p and p != akteur]
+        if empf:
+            if s_neu == "erledigt":
+                titel_m = "Erledigt ✓"
+                txt = "„" + a["titel"] + "“ – erledigt von " + wer
+            else:
+                titel_m = "Begonnen"
+                txt = "„" + a["titel"] + "“ – " + wer + " hat angefangen"
+            if extra:
+                txt += " · " + " · ".join(extra)
+            meldungen.append(_meldung(empf, "ausfuehrung", titel_m, txt, a["id"], []))
     for x in extra or []:
         eintraege.append(x)
         teile.append(x)
@@ -931,8 +974,8 @@ def _erstellen(e, akteur, jetzt, gueltig, kat_ids, namen, std_er=None):
         return None, [], "Bitte eine Bezeichnung eingeben."
     heute = jetzt.date()
     a = _leere_aufgabe()
-    for k in ("titel", "notiz", "kategorie", "tags", "fuer", "macher", "geplant", "zeit", "frist", "frist_rel", "serie",
-              "erinnerungen"):
+    for k in ("titel", "notiz", "kategorie", "tags", "fuer", "macher", "melden_an", "melden_bei", "geplant", "zeit",
+              "frist", "frist_rel", "serie", "erinnerungen"):
         if k in f:
             a[k] = f[k]
     if "erinnerungen" not in f:
@@ -978,7 +1021,8 @@ def _bearbeiten(alt, e, akteur, jetzt, gueltig, kat_ids, namen):
         return None, None, [], "Bitte eine Bezeichnung eingeben."
     heute = jetzt.date()
     a = copy.deepcopy(alt)
-    for k in ("titel", "notiz", "kategorie", "tags", "fuer", "macher", "geplant", "zeit", "serie", "erinnerungen"):
+    for k in ("titel", "notiz", "kategorie", "tags", "fuer", "macher", "melden_an", "melden_bei", "geplant", "zeit", "serie",
+              "erinnerungen"):
         if k in f:
             a[k] = f[k]
     if "erinnerungen" in f:

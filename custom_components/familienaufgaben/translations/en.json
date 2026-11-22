@@ -73,6 +73,14 @@
           "name": "Assignees",
           "description": "List of persons doing it."
         },
+        "melden_an": {
+          "name": "Notify on execution",
+          "description": "Who gets a message when the task is done or started, e.g. [person.lena, \"Grandma\"]. External people via WhatsApp or e-mail if stored."
+        },
+        "melden_bei": {
+          "name": "Notify when",
+          "description": "erledigt (done, default) and/or arbeit (started)."
+        },
         "geplant": {
           "name": "Planned day",
           "description": "Date (YYYY-MM-DD)."

@@ -5,7 +5,7 @@
  * mit der früheren Pyscript-Fassung (Dienste pyscript.familienaufgaben_*).
  * Anzeige-Sensor: sensor.familienaufgaben (Attribut version → Karte lädt neu).
  */
-const FA_VERSION = "1.4.0";
+const FA_VERSION = "1.5.0";
 
 const STATUS = [
   { id: "neu", name: "Neu", icon: "mdi:inbox-arrow-down", farbe: "#2b8be6" },
@@ -523,6 +523,7 @@ const CSS_KARTE = `
   .zeilen .l { color: var(--secondary-text-color); font-size: 12.5px; }
   .zeilen .w { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; min-width: 0; }
   .pers { display: inline-flex; align-items: center; gap: 4px; margin-right: 6px; }
+  .mb-wann { font-size: 12.5px; color: var(--secondary-text-color); margin-left: 2px; white-space: nowrap; }
   .a-knoepfe { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
   .verlauf { margin-top: 10px; font-size: 12.5px; color: var(--secondary-text-color); }
   .verlauf summary { cursor: pointer; }
@@ -1351,6 +1352,11 @@ class FamilienaufgabenKarte extends HTMLElement {
     z("Spätestens", a.frist ? esc(`${fmtTag(a.frist, heute, true)}${a.frist_rel ? ` (${fristRelText(a.frist_rel)})` : ""}`) : "–");
     if (a.serie) z("Wiederholung", esc(serieText(a.serie) + (a.serie.ende ? `, bis ${fmtTag(a.serie.ende, heute, true)}` : "")));
     if ((a.erinnerungen || []).length) z("Erinnerungen", this._erDetailsHtml(a, heute));
+    if ((a.melden_an || []).length) {
+      const bei = a.melden_bei && a.melden_bei.length ? a.melden_bei : ["erledigt"];
+      const wann = bei.includes("arbeit") && bei.includes("erledigt") ? "wenn begonnen und wenn erledigt" : bei.includes("arbeit") ? "wenn begonnen" : "wenn erledigt";
+      z("Benachrichtigen", `${this._personenHtml(a.melden_an, "")}<span class="mb-wann">${wann}</span>`);
+    }
     z("Kategorie", kat ? `<span class="chip"><ha-icon icon="${esc(kat.icon)}" style="color:${esc(kat.farbe)}"></ha-icon>${esc(kat.name)}</span>` : "–");
     z("Status", `<span class="spill" style="--s:${STATUS_MAP[a.status].farbe}">${STATUS_MAP[a.status].name}</span>`);
     z("Erstellt", esc(`${fmtZeitpunkt(a.erstellt, heute)}${a.erstellt_von ? ` von ${this._pname(a.erstellt_von)}` : ""}`));
@@ -1819,6 +1825,8 @@ class FamilienaufgabenKarte extends HTMLElement {
         tags: [...(a.tags || [])],
         fuer: [...(a.fuer || [])],
         macher: [...(a.macher || [])],
+        melden_an: [...(a.melden_an || [])],
+        melden_bei: a.melden_bei && a.melden_bei.length ? [...a.melden_bei] : ["erledigt"],
         status: a.status,
         geplant: a.geplant || "",
         zeit: a.zeit || "",
@@ -1841,7 +1849,7 @@ class FamilienaufgabenKarte extends HTMLElement {
       this._form = {
         id: null, titel: "", notiz: "",
         kategorie: ui.kategorie && ui.kategorie !== "_ohne" ? ui.kategorie : "",
-        tags: ui.tag ? [ui.tag] : [], fuer, macher: [], status: "neu",
+        tags: ui.tag ? [ui.tag] : [], fuer, macher: [], melden_an: [], melden_bei: ["erledigt"], status: "neu",
         geplant: "", zeit: "", frist_modus: "keine", frist: plusTage(heute, 7), frist_n: 1, frist_einheit: "wochen",
         serie_an: false, serie_einheit: "wochen", serie_n: 1, serie_wt: [], serie_basis: "plan", serie_ende: "",
         erinnerungen: erKopie(this._einst().erinnerungen_standard, true),
@@ -1856,7 +1864,7 @@ class FamilienaufgabenKarte extends HTMLElement {
   _pickerHtml(feld) {
     const auswahl = this._form[feld];
     const ext = new Set((this._einst().externe || []).map((n) => `extern:${n}`));
-    for (const x of [...this._form.fuer, ...this._form.macher]) if (x.startsWith("extern:")) ext.add(x);
+    for (const x of [...this._form.fuer, ...this._form.macher, ...(this._form.melden_an || [])]) if (x.startsWith("extern:")) ext.add(x);
     const ids = [...this._personen(), ...[...ext].sort((a, b) => a.localeCompare(b, "de"))];
     const chips = ids
       .map((id) => {
@@ -1966,6 +1974,13 @@ class FamilienaufgabenKarte extends HTMLElement {
         ${this._erEditorHtml(f.erinnerungen, "er", true)}
         <div class="er-info">${this._erInfoHtml()}</div>
       </div>
+      <div class="feld"><div class="lab">Benachrichtigen bei Ausführung <span class="opt">(mehrere möglich)</span></div>
+        ${this._pickerHtml("melden_an")}
+        ${f.melden_an.length ? `<div class="reihe" style="margin-top:8px">wenn <div class="seg">${[["erledigt", "erledigt"], ["arbeit", "begonnen"]]
+          .map(([w, n]) => `<button type="button" class="${f.melden_bei.includes(w) ? "an" : ""}" data-d="melden-bei" data-w="${w}" aria-pressed="${f.melden_bei.includes(w)}">${n}</button>`)
+          .join("")}</div></div>
+        <div class="hilfe">Bekommt eine Nachricht aufs Handy (Externe per WhatsApp oder E-Mail, wenn in den Einstellungen hinterlegt). Wer die Aufgabe selbst erledigt oder beginnt, bekommt keine.</div>` : ""}
+      </div>
       <div class="feld"><div class="lab">Wiederholen</div>
         <div class="seg">${[["nie", "Nie"], ["tage", "Täglich"], ["wochen", "Wöchentlich"], ["monate", "Monatlich"], ["jahre", "Jährlich"]]
           .map(([w, n]) => `<button type="button" class="${serieWahl === w ? "an" : ""}" data-d="serie" data-w="${w}">${n}</button>`)
@@ -2002,7 +2017,7 @@ class FamilienaufgabenKarte extends HTMLElement {
     const name = String(f.externName || "").trim().replace(/\s+/g, " ").slice(0, 40);
     if (name && f.externFeld) {
       const id = `extern:${name}`;
-      const vorhanden = [...this._personen(), ...f.fuer, ...f.macher, ...(this._einst().externe || []).map((n) => `extern:${n}`)]
+      const vorhanden = [...this._personen(), ...f.fuer, ...f.macher, ...(f.melden_an || []), ...(this._einst().externe || []).map((n) => `extern:${n}`)]
         .find((x) => this._pname(x).toLowerCase() === name.toLowerCase());
       const wahl = vorhanden || id;
       if (!f[f.externFeld].includes(wahl)) f[f.externFeld].push(wahl);
@@ -2038,6 +2053,14 @@ class FamilienaufgabenKarte extends HTMLElement {
       case "extern-ok":
         this._externDazu();
         return;
+      case "melden-bei": {
+        const w = el.dataset.w;
+        const i = f.melden_bei.indexOf(w);
+        if (i >= 0) {
+          if (f.melden_bei.length > 1) f.melden_bei.splice(i, 1);
+        } else f.melden_bei.push(w);
+        break;
+      }
       case "tag":
         f.geplant = el.dataset.w;
         if (!f.geplant) f.zeit = "";
@@ -2108,6 +2131,8 @@ class FamilienaufgabenKarte extends HTMLElement {
       tags: f.tags,
       fuer: f.fuer,
       macher: f.macher,
+      melden_an: f.melden_an,
+      melden_bei: f.melden_bei,
       geplant: f.geplant || null,
       zeit: f.geplant ? f.zeit || null : null,
       frist_modus: f.frist_modus,
